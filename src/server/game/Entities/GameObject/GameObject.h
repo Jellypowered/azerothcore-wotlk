@@ -371,6 +371,7 @@ protected:
     uint32      m_spellId;
     time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
     uint32      m_respawnDelayTime;                     // (secs) if 0 then current GO state no dependent from timer
+    uint32      m_baseRespawnDelayTime;                 // (secs) base if 0 then current GO state no dependent from timer
     uint32      m_despawnDelay;
     Seconds     m_despawnRespawnTime;                   // override respawn time after delayed despawn
     Seconds     m_restockTime;
