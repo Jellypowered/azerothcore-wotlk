@@ -55,7 +55,7 @@ CCOMPILERCXX="/usr/bin/clang++"
 # how many thread must be used for compilation ( leave zero to use all available )
 MTHREADS=${MTHREADS:-0}
 # enable/disable warnings during compilation
-CWARNINGS=ON
+CWARNINGS=OFF
 # enable/disable some debug informations ( it's not a debug compilation )
 CDEBUG=OFF
 # specify compilation type:
@@ -65,7 +65,7 @@ CDEBUG=OFF
 #    debugger and have address to source-file:line-number translation).
 # * RelWithDebInfo: optimized, *with* debug info, but no debug (output) code or asserts.
 # * MinSizeRel: same as Release but optimizing for size rather than speed.
-CTYPE=${CTYPE:-Release}
+CTYPE=${CTYPE:-RelWithDebInfo}
 
 # compile scripts
 CSCRIPTS=${CSCRIPTS:-static}
