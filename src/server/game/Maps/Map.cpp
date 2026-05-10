@@ -44,6 +44,7 @@
 #include "VMapMgr2.h"
 #include "Weather.h"
 #include "WeatherMgr.h"
+#include "Config.h"
 
 #define MAP_INVALID_ZONE        0xFFFFFFFF
 
@@ -1934,12 +1935,18 @@ Map::EnterState InstanceMap::CannotEnter(Player* player, bool loginCheck)
         return Map::CannotEnter(player, loginCheck);
 
     // cannot enter if the instance is full (player cap), GMs don't count
+    // Add stuff to allow playerbots to enter instance regardless of the check.
+    // Bots don't have a session so they should pass, but our allowBypass 
+    // ensures they will not count towards the maxPlayers check.
+
     uint32 maxPlayers = GetMaxPlayers();
-    if (GetPlayersCountExceptGMs() >= (loginCheck ? maxPlayers + 1 : maxPlayers))
+    bool allowBypass = sConfigMgr->GetOption<bool>("PlayerLimit.Bypass.Enable", false);
+    WorldSession* session = player->GetSession();
+    if (session && !allowBypass && GetPlayersCountExceptGMs() >= (loginCheck ? maxPlayers + 1 : maxPlayers))
     {
-        LOG_DEBUG("maps", "MAP: Instance '{}' of map '{}' cannot have more than '{}' players. Player '{}' rejected", GetInstanceId(), GetMapName(), maxPlayers, player->GetName());
-        player->SendTransferAborted(GetId(), TRANSFER_ABORT_MAX_PLAYERS);
-        return CANNOT_ENTER_MAX_PLAYERS;
+    LOG_DEBUG("maps", "MAP: Instance '{}' of map '{}' cannot have more than '{}' players. Player '{}' rejected", GetInstanceId(), GetMapName(), maxPlayers, player->GetName());
+    player->SendTransferAborted(GetId(), TRANSFER_ABORT_MAX_PLAYERS);
+    return CANNOT_ENTER_MAX_PLAYERS;
     }
 
     // cannot enter while an encounter is in progress on raids

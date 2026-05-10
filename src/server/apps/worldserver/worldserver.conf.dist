@@ -4781,6 +4781,14 @@ Respawn.ForceCompatibilityMode = 0
 ###################################################################################################
 
 ###################################################################################################
+#
+# Allow bypassing player limit check
+# Set this to 0 if you don't want to allow raids containing playerbots to Enter 5 Man instances.
+# Should only work for additional Playerbots, Real Players shouldn't be able to bypass these limitations.
+# Default: 0 - (Disabled)
+
+PlayerLimit.Bypass.Enable = 0
+###################################################################################################
 #                                                                                                 #
 # GAME SETTINGS END                                                                               #
 #                                                                                                 #
