@@ -117,3 +117,7 @@ local.properties
 # ==================
 .cache
 compile_commands.json
+mysql-apt-config_0.8.32-1_all.deb
+mysql-apt-config_0.8.32-1_all.deb.1
+startup.sh
+deps/libmpq.so
