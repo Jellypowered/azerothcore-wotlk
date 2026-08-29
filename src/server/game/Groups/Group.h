@@ -317,6 +317,7 @@ public:
     Rolls GetRolls() const { return RollId; }
 
     // related to disenchant rolls
+    uint32 GetMaxEnchantingLevel() const { return m_maxEnchantingLevel; }
     void ResetMaxEnchantingLevel();
 
     void LinkMember(GroupReference* pRef);
