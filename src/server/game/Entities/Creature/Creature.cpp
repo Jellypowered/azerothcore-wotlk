@@ -22,6 +22,7 @@
 #include "CreatureAI.h"
 #include "CreatureAISelector.h"
 #include "CreatureGroups.h"
+#include "CreatureView.h"
 #include "MoveSpline.h"
 #include "DatabaseEnv.h"
 #include "Formulas.h"
@@ -3200,8 +3201,20 @@ void Creature::AllLootRemovedFromCorpse()
 
 uint8 Creature::getLevelForTarget(WorldObject const* target) const
 {
-    if (!isWorldBoss() || !target->ToUnit())
+    if (!isWorldBoss() || !target || !target->ToUnit())
+    {
+        // Z-14, from CoA PR #4406 (bozo-1): a character a scaling module has given a view of this
+        // creature fights that version, and the whole core asks this function for
+        // the level a fight is rolled at -- spell hit and resistance, weapon and
+        // defence skill, glancing and crushing, detection, aggro radius, kill XP.
+        if (target)
+            if (Unit const* opponent = target->ToUnit())
+                if (Player const* viewer = opponent->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    if (uint8 const view = CreatureView::LevelFor(viewer, this))
+                        return view;
+
         return Unit::getLevelForTarget(target);
+    }
 
     uint16 level = target->ToUnit()->GetLevel() + sWorld->getIntConfig(CONFIG_WORLD_BOSS_LEVEL_DIFF);
     if (level < 1)

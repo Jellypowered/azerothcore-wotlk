@@ -82,7 +82,8 @@ uint32 Acore::XP::Gain(Player* player, Unit* unit, bool isBattleGround /*= false
 
         uint8 playerLevel = player->GetLevel();
         sScriptMgr->OnPlayerBeforeGetLevelForXPGain(player, playerLevel);
-        gain = BaseGain(playerLevel, unit->GetLevel(), GetContentLevelsForMapAndZone(unit->GetMapId(), unit->GetZoneId()));
+        // Z-14, from CoA PR #4406 (bozo-1): the level the killer fought, not the object's own.
+        gain = BaseGain(playerLevel, unit->getLevelForTarget(player), GetContentLevelsForMapAndZone(unit->GetMapId(), unit->GetZoneId()));
 
         if (gain && creature)
         {

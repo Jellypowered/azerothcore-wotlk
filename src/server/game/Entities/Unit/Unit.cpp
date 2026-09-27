@@ -25,6 +25,7 @@
 #include "CellImpl.h"
 #include "CharacterCache.h"
 #include "CharmInfo.h"
+#include "CreatureView.h"
 #include "Chat.h"
 #include "ChatPackets.h"
 #include "ChatTextBuilder.h"
@@ -2225,6 +2226,13 @@ uint32 Unit::CalcArmorReducedDamage(Unit const* attacker, Unit const* victim, co
 {
     float armor = float(victim->GetArmor());
 
+    // Z-14, from CoA PR #4406 (bozo-1): a creature shown at the viewer's level is defended like that
+    // level's creature_classlevelstats row, not like the authored one.
+    if (Creature const* creature = victim->ToCreature())
+        if (Player const* viewer = attacker ? attacker->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr)
+            if (uint32 const viewArmor = CreatureView::ArmorFor(viewer, creature))
+                armor = float(viewArmor);
+
     // Ignore enemy armor by SPELL_AURA_MOD_TARGET_RESISTANCE aura
     if (attacker)
     {
@@ -3095,10 +3103,13 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(Unit const* victim, WeaponAttackTy
     }
 
     // Max 40% chance to score a glancing blow against mobs that are higher level (can do only players and pets and not with ranged weapon)
+    // The level test is expressed through the max-skill-for-level values (getLevelForTarget * 5) so that a script
+    // which corrected them in OnBeforeRollMeleeOutcomeAgainst also decides whether this outcome can happen at all.
+    // Without a script the values are identical to the raw level comparison.
     if (attType != RANGED_ATTACK &&
             (IsPlayer() || IsPet()) &&
             !victim->IsPlayer() && !victim->IsPet() &&
-            GetLevel() < victim->getLevelForTarget(this))
+            attackerMaxSkillValueForLevel < victimMaxSkillValueForLevel)
     {
         // cap possible value (with bonuses > max skill)
         int32 skill = attackerWeaponSkill;
@@ -3114,8 +3125,8 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(Unit const* victim, WeaponAttackTy
         }
     }
 
-    // mobs can score crushing blows if they're 4 or more levels above victim
-    if (getLevelForTarget(victim) >= victim->getLevelForTarget(this) + 4 &&
+    // mobs can score crushing blows if they're 4 or more levels above victim (four levels is 20 skill points, see above)
+    if (attackerMaxSkillValueForLevel >= victimMaxSkillValueForLevel + 20 &&
             // can be from by creature (if can) or from controlled player that considered as creature
             !IsControlledByPlayer() &&
             !(IsCreature() && ToCreature()->HasFlagsExtra(CREATURE_FLAG_EXTRA_NO_CRUSHING_BLOWS)))
@@ -3282,7 +3293,8 @@ bool Unit::isSpellBlocked(Unit* victim, SpellInfo const* spellProto, WeaponAttac
             return false;
 
         float blockChance = victim->GetUnitBlockChance();
-        blockChance += (int32(GetWeaponSkillValue(attackType)) - int32(victim->GetMaxSkillValueForLevel())) * 0.04f;
+        // Z-14, from CoA PR #4406 (bozo-1): both skills relative to the other side, so a view applies.
+        blockChance += (int32(GetWeaponSkillValue(attackType, victim)) - int32(victim->GetMaxSkillValueForLevel(this))) * 0.04f;
 
         // xinef: cant block while casting or while stunned
         if (blockChance < 0.0f || victim->IsNonMeleeSpellCast(false, false, true) || victim->HasUnitState(UNIT_STATE_CONTROLLED))
@@ -3339,7 +3351,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* victim, SpellInfo const* spellInfo
     int32 attackerWeaponSkill;
     // skill value for these spells (for example judgements) is 5* level
     if (spellInfo->DmgClass == SPELL_DAMAGE_CLASS_RANGED && !spellInfo->IsRangedWeaponSpell())
-        attackerWeaponSkill = GetLevel() * 5;
+        attackerWeaponSkill = getLevelForTarget(victim) * 5;   // Z-14, from CoA PR #4406 (bozo-1)
     // bonus from skills is 0.04% per skill Diff
     else
         attackerWeaponSkill = int32(GetWeaponSkillValue(attType, victim));
