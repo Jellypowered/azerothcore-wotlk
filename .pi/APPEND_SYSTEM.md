@@ -25,7 +25,7 @@ For claims about how this repository behaves:
 - Before proposing a code change, trace the relevant local implementation far
   enough to establish that the proposed behavior matches this checkout.
 - Before modifying files, read and follow the applicable rules in both
-  `/stuff/Source/azerothcore-wotlk/.coderabbit.yaml` and
+  `/stuff/Source/azerothcore-wotlk/.coderabbit.yml` and
   `/stuff/Source/azerothcore-wotlk/modules/mod-playerbots/.coderabbit.yaml`.
   The repository-level rules apply throughout `azerothcore-wotlk`; the
   `mod-playerbots` rules apply additionally to files within that module.
